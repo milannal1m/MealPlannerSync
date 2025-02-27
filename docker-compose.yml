@@ -1,0 +1,33 @@
+services:
+  meal-postgres:
+    image: postgres:latest
+    container_name: meal-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: meal_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - meal_postgres_data:/var/lib/postgresql/data
+      - ./backend/meal_service/database/mealdb.sql:/docker-entrypoint-initdb.d/init.sql
+
+  user-postgres:
+    image: postgres:latest
+    container_name: user-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: user_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
+      - ./backend/user_service/database/userdb.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  meal_postgres_data:
+  user_postgres_data:
+
