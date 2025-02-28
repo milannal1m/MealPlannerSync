@@ -27,7 +27,23 @@ services:
       - user_postgres_data:/var/lib/postgresql/data
       - ./backend/user_service/database/userdb.sql:/docker-entrypoint-initdb.d/init.sql
 
+  # RabbitMQ Service
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # RabbitMQ Standard Port
+      - "15672:15672" # RabbitMQ Management UI Port
+    networks:
+      - flask-rabbit-network
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
 volumes:
   meal_postgres_data:
   user_postgres_data:
 
+networks:
+  flask-rabbit-network:
+    driver: bridge
