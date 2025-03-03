@@ -16,7 +16,7 @@ postgres_user = os.getenv("POSTGRES_USER")
 engine = create_engine(f"postgresql://{postgres_user}:{postgres_password}@meal-postgres:5432/meal_db")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-app = FastAPI()
+app = FastAPI(root_path="/meal")
 
 @app.get("/")
 def read_root():

@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List
 from fastapi import FastAPI
 
-app = FastAPI()
+app = FastAPI(root_path="/sync")
 
 
 @app.get("/")
