@@ -18,7 +18,7 @@ def get_connections(username: str):
     return {"message": f"Hello, {username}! You are viewing your connections"}
 
 @app.post("/users/{username}/connections")
-def get_connection(username: str, connection_id: int):
+def post_connection(username: str, connection_id: int):
     return {"message": f"Hello, {username}! You are viewing connection {connection_id}"}
 
 @app.get("/users/{username}/connections/{connection_id}")
@@ -26,5 +26,5 @@ def get_connection(username: str, connection_id: int):
     return {"message": f"Hello, {username}! You are viewing connection {connection_id}"}
 
 @app.delete("/users/{username}/connections/{connection_id}")
-def get_connection(username: str, connection_id: int):
+def delete_connection(username: str, connection_id: int):
     return {"message": f"Hello, {username}! You are viewing connection {connection_id}"}
