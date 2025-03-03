@@ -24,6 +24,8 @@ services:
     depends_on:
       - meal-postgres
       - user_service
+    env_file:
+      - ./.env
     networks:
       - backend_network
       - meal_network
@@ -36,6 +38,8 @@ services:
       - "8002:8002"
     depends_on:
       - user-postgres
+    env_file:
+      - ./.env
     networks:
       - backend_network
       - user_network

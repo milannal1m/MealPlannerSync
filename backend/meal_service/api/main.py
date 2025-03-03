@@ -1,13 +1,42 @@
 from pydantic import BaseModel
 from typing import List
 from fastapi import FastAPI
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import OperationalError
+from dotenv import load_dotenv
+import os
+
+dotenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '.env')
+load_dotenv()
+
+postgres_password = os.getenv("POSTGRES_PASSWORD")
+postgres_user = os.getenv("POSTGRES_USER")
+
+engine = create_engine(f"postgresql://{postgres_user}:{postgres_password}@meal-postgres:5432/meal_db")
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 app = FastAPI()
-
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+@app.get("/test-db-connection")
+def test_db_connection():
+    try:
+        # Öffne eine Sitzung und führe eine einfache Abfrage durch
+        with SessionLocal() as session:
+            # Führe eine einfache SQL-Abfrage durch, um zu testen, ob die Verbindung funktioniert
+            result = session.execute(text("SELECT 1")).scalar()
+
+            if result == 1:
+                return {"status": "success", "message": "Verbindung zur Datenbank erfolgreich!"}
+            else:
+                return {"status": "failure", "message": "Testabfrage fehlgeschlagen!"}
+
+    except OperationalError as e:
+        return {"status": "failure", "message": f"Fehler beim Verbinden mit der Datenbank: {str(e)}"}
 
 class Ingredient(BaseModel):
     name: str
