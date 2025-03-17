@@ -11,8 +11,8 @@
 
 ## Links 
 
-Meal Service Docs
+[Meal Service Docs](http://localhost/meal/docs)
 
-User Service Docs
+[User Service Docs](http://localhost/user/docs)
 
-Sync Service Docs
+[Sync Service Docs](http://localhost/sync/docs)
