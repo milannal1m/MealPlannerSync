@@ -24,6 +24,7 @@ services:
     depends_on:
       - meal-postgres
       - user_service
+      - rabbitmq
     env_file:
       - ./.env
     networks:
@@ -38,6 +39,7 @@ services:
       - "8002:8002"
     depends_on:
       - user-postgres
+      - rabbitmq
     env_file:
       - ./.env
     networks:

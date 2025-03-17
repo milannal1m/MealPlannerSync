@@ -3,8 +3,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from functools import partial
 import os
 from dotenv import load_dotenv
+import aio_pika
+import asyncio
+import json
 
 dotenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '.env')
 load_dotenv()
@@ -48,9 +52,7 @@ def create_user(username: str, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return {"id": new_user.id, "name": new_user.name}
 
-
-@app.get("/users/{username}/connections")
-def get_user_connections(username: str, db: Session = Depends(get_db)):
+def get_connections_for_user(username: str, db: Session):
     user = db.query(User).filter(User.name == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -62,7 +64,13 @@ def get_user_connections(username: str, db: Session = Depends(get_db)):
     connected_user_ids = {conn.user1_id if conn.user2_id == user.id else conn.user2_id for conn in connections}
     connected_users = db.query(User).filter(User.id.in_(connected_user_ids)).all()
     
-    return {"user": user.name, "connections": [u.name for u in connected_users]}
+    return connected_users
+
+
+@app.get("/users/{username}/connections")
+def get_user_connections(username: str, db: Session = Depends(get_db)):
+    connected_users = get_connections_for_user(username, db)
+    return connected_users
 
 @app.post("/users/{username}/connections")
 def create_connection(username: str, connected_username: str, db: Session = Depends(get_db)):
@@ -108,3 +116,40 @@ def delete_connection(username: str, connected_username: str, db: Session = Depe
     db.delete(connection)
     db.commit()
     return {"message": "Connection deleted", "user1": user1.name, "user2": connected_username}
+
+
+RABBITMQ_HOST = "amqp://guest:guest@rabbitmq/"
+
+async def on_request(message: aio_pika.IncomingMessage, connection: aio_pika.Connection):
+    async with message.process():
+        request_data = json.loads(message.body)
+        username = request_data.get("username", "unknown")
+        response = get_connections_for_user(username, next(get_db()))
+        response = json.dumps([{"id": user.id, "name": user.name} for user in response])
+
+        async with connection.channel() as channel:
+            await channel.default_exchange.publish(
+                aio_pika.Message(
+                    body=response.encode(),
+                    correlation_id=message.correlation_id
+                ),
+                routing_key=message.reply_to
+            )
+
+
+async def start_rabbitmq():
+    retries = 5
+    while retries > 0:
+        try:
+            connection = await aio_pika.connect_robust(RABBITMQ_HOST)
+            channel = await connection.channel()
+            queue = await channel.declare_queue("user_request")
+            callback = partial(on_request, connection=connection)
+            await queue.consume(callback)
+            await asyncio.Future()
+            break
+        except aio_pika.exceptions.AMQPConnectionError as e:
+            await asyncio.sleep(5)
+            retries -= 1
+
+asyncio.create_task(start_rabbitmq())

@@ -3,3 +3,6 @@ uvicorn
 SQLAlchemy
 python-dotenv
 psycopg2
+aio_pika
+pika
+asyncio
