@@ -2,8 +2,7 @@
 
    ```bash
     #Container bauen
-    docker-compose down -v                                                 
-    docker-compose up -d
+    ./deploy.sh
 
     docker exec -it <container> sh # Auf Container zugreifen
     docker logs <container> #Logs anschauen -> DEBUG
