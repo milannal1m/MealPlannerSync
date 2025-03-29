@@ -1,12 +1,13 @@
-## Useful Commands
+
+
+## Installation
+
+Install Python Docker and docker-compose.
+
+## Start
 
    ```bash
-    #Container bauen
-    docker-compose down -v                                                 
-    docker-compose up -d
-
-    docker exec -it <container> sh # Auf Container zugreifen
-    docker logs <container> #Logs anschauen -> DEBUG
+    ./deploy.sh
    ```
 
 ## Links 
@@ -16,3 +17,6 @@
 [User Service Docs](http://localhost/user/docs)
 
 [Sync Service Docs](http://localhost/sync/docs)
+
+
+
