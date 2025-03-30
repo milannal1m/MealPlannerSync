@@ -21,13 +21,13 @@
 <template>
 
     <button @click="navigateToUser" class="user-button">
-      👤
+      <i class="fa-solid fa-users"></i>
     </button>
     
 </template>
 
 <style>
-    .user-button {
+.user-button {
   background: #007bff; /* Blaue Farbe für Benutzer-Button */
   font-size: 18px; /* Größere Schrift */
   display: flex; /* Zentriert den Inhalt */

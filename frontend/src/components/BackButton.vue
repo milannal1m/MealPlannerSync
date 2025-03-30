@@ -12,8 +12,28 @@ const navigateBack = () => {
 
 <template>
 
-  <button @click="navigateBack" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+  <button @click="navigateBack" class="back-button">
     Back
   </button>
   
 </template>
+
+<style>
+  .back-button {
+    background: #007bff; /* Blaue Farbe für Benutzer-Button */
+    font-size: 18px; /* Größere Schrift */
+    display: flex; /* Zentriert den Inhalt */
+    align-items: center; /* Zentriert vertikal */
+    justify-content: center; /* Zentriert horizontal */
+    border: none; /* Entfernt den Standard-Rand */
+    border-radius: 8px; /* Runde Ecken */
+    cursor: pointer;
+    padding: 12px 18px; /* Abstand */
+    color: white; /* Weiße Schrift */
+  }
+
+.back-button:hover {
+  background: #0056b3; /* Dunkleres Blau beim Hover */
+}
+
+</style>

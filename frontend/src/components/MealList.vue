@@ -26,12 +26,15 @@ const emit = defineEmits(['removeItem', 'editItem']);
         <span class="meal-user">{{ item.username }}</span>
       </div>
       
+
       <div class="action-buttons">
-        <button class="edit-button"
-        @click = "emit('editItem', item)">Edit</button>
-        <button class="delete-button"
-        @click="emit('removeItem', index)">Delete</button> 
+      <button class="edit-button"
+      @click = "emit('editItem', item)"><i class="fa-solid fa-pencil"></i></button>
+      <button class="delete-button"
+      @click="emit('removeItem', index)"><i class="fa-solid fa-trash"></i></button> 
+      
       </div>
+
     </li>
   </ul>
 </template>
@@ -69,7 +72,7 @@ const emit = defineEmits(['removeItem', 'editItem']);
     color: #666;
   }
 
-    .edit-button,
+  .edit-button,
   .delete-button {
     width: 100px;  /* Feste Breite */
     height: 50px; /* Feste Höhe */
@@ -80,6 +83,8 @@ const emit = defineEmits(['removeItem', 'editItem']);
     border: none; /* Entfernt den Standard-Rand */
     border-radius: 8px; /* Runde Ecken */
     cursor: pointer;
+    gap: 25px;
+    margin-bottom: 10px; /* Vertikaler Abstand zwischen den Buttons */
   }
 
   .edit-button {

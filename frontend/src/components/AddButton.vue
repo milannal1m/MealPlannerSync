@@ -22,7 +22,7 @@
 
 <style>
 
-    .add-button {
+.add-button {
         background: #28a745;
         font-size: 18px; /* Größere Schrift */
         display: flex; /* Zentriert den Inhalt */
@@ -32,6 +32,7 @@
         border-radius: 8px; /* Runde Ecken */
         cursor: pointer;
         padding: 12px 18px;
+        color: white;
   }
 
   .add-button:hover {
