@@ -59,7 +59,7 @@ def get_meals(username: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No meals found for this user")
     return {"meals": [{"id": meal.id, "name": meal.name, "planned_for": meal.planned_for} for meal in meals]}
 
-@app.post("/{username}/meals/")
+@app.post("/{username}/meals")
 def create_meal(username: str, name:str, date:datetime, db: Session = Depends(get_db)):   
     new_meal = Meal(name=name , username=username, planned_for=date)
     db.add(new_meal)
