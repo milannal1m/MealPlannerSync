@@ -3,3 +3,4 @@ uvicorn
 aio_pika
 pika
 asyncio
+python-dotenv

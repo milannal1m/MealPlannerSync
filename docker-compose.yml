@@ -71,6 +71,8 @@ services:
         condition: on-failure
     environment:
       - PORT=8003
+    env_file:
+      - ./.env
     networks:
       - backend_network
 

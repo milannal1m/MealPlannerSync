@@ -2,12 +2,16 @@ import uuid
 import json
 import asyncio
 import aio_pika
+import os
+from dotenv import load_dotenv
 
-RABBITMQ_HOST = "amqp://guest:guest@rabbitmq/"
+load_dotenv()
+
+RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 
 async def send_request(routing_key: str, payload: dict):
     """Sendet eine Nachricht an RabbitMQ und wartet asynchron auf die Antwort."""
-    connection = await aio_pika.connect_robust(RABBITMQ_HOST)
+    connection = await aio_pika.connect_robust(RABBITMQ_URL)
     async with connection:
         channel = await connection.channel()
         callback_queue = await channel.declare_queue(exclusive=True)

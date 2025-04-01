@@ -6,8 +6,12 @@ from aio_pika import Message, DeliveryMode, connect_robust
 from functools import partial
 from db import get_db
 from crud import get_user_meals
+import os
+from dotenv import load_dotenv
 
-RABBITMQ_URL = "amqp://guest:guest@rabbitmq/"
+load_dotenv()
+
+RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 
 async def get_rabbitmq_connection():
     """Stellt eine Verbindung zu RabbitMQ her."""
