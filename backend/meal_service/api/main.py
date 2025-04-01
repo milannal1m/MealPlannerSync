@@ -30,9 +30,10 @@ async def create_meal_endpoint(username: str, name: str, date: datetime, db: Ses
 
 
 @app.delete("/{username}/meals/{meal_id}")
-def delete_meal_endpoint(username: str, meal_id: int, db: Session = Depends(get_db)):
+async def delete_meal_endpoint(username: str, meal_id: int, db: Session = Depends(get_db)):
     if not delete_meal(username, meal_id, db):
         raise HTTPException(status_code=404, detail="Meal not found")
+    await send_notification(f"Deleted Meal {meal_id}")
     return {"message": f"Deleted meal {meal_id}"}
 
 

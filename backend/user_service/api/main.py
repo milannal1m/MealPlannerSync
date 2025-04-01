@@ -28,5 +28,7 @@ async def create_connection_endpoint(username: str, connected_username: str, db:
     return new_connection
 
 @app.delete("/users/{username}/connections/{connected_username}")
-def delete_connection_endpoint(username: str, connected_username: str, db: Session = Depends(get_db)):
-    return delete_connection(username, connected_username, db)
+async def delete_connection_endpoint(username: str, connected_username: str, db: Session = Depends(get_db)):
+    response = delete_connection(username, connected_username, db)
+    await send_notification(f"Connection Deleted {username} - {connected_username}")
+    return response
