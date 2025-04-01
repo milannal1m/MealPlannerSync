@@ -21,7 +21,7 @@ async def get_rabbitmq_connection():
 async def send_notification(message: str):
     connection = await get_rabbitmq_connection()
     channel = await connection.channel()
-    exchange = await channel.declare_exchange("notifications", aio_pika.ExchangeType.FANOUT)
+    exchange = await channel.declare_exchange("meal_notifications", aio_pika.ExchangeType.FANOUT)
 
     await exchange.publish(
         Message(message.encode(), delivery_mode=DeliveryMode.PERSISTENT),
@@ -34,7 +34,7 @@ async def start_websocket_queue(websocket: WebSocket):
 
     connection = await get_rabbitmq_connection()
     channel = await connection.channel() 
-    exchange = await channel.declare_exchange("notifications", aio_pika.ExchangeType.FANOUT)
+    exchange = await channel.declare_exchange("meal_notifications", aio_pika.ExchangeType.FANOUT)
     queue = await channel.declare_queue("", exclusive=True)
     await queue.bind(exchange)
 
