@@ -6,3 +6,4 @@ psycopg2
 aio_pika
 pika
 asyncio
+websockets

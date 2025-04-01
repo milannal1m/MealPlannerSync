@@ -34,3 +34,12 @@ fetch("http://localhost/meal/test/meals/6", {
     console.log("Meal gelöscht");
   })
   .catch(error => console.error("Fehler:", error));
+
+
+<-- Web Sockets -->
+
+const socket = new WebSocket("http://localhost/meal/ws");
+
+socket.onmessage = function(event) {
+    console.log("Nachricht vom Server:", event.data);
+};

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, WebSocket
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import aio_pika
 import asyncio
 import json
+from aio_pika import Message, DeliveryMode, connect_robust
 
 dotenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '.env')
 load_dotenv()
@@ -40,6 +41,35 @@ def get_db():
     finally:
         db.close()
 
+async def get_rabbitmq_connection():
+    return await connect_robust("amqp://guest:guest@rabbitmq/")
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+
+    connection = await get_rabbitmq_connection()
+    channel = await connection.channel() 
+    exchange = await channel.declare_exchange("notifications", aio_pika.ExchangeType.FANOUT)
+    queue = await channel.declare_queue("", exclusive=True)
+    await queue.bind(exchange)
+
+    async for message in queue:
+        async with message.process():
+            await websocket.send_text(message.body.decode())
+    await connection.close()
+
+async def send_notification(message: str):
+    connection = await get_rabbitmq_connection()
+    channel = await connection.channel()
+    exchange = await channel.declare_exchange("notifications", aio_pika.ExchangeType.FANOUT)
+
+    await exchange.publish(
+        Message(message.encode(), delivery_mode=DeliveryMode.PERSISTENT),
+        routing_key=""
+    )
+    await connection.close()
+
 @app.post("/users")
 def create_user(username: str, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.name == username).first()
@@ -66,14 +96,13 @@ def get_connections_for_user(username: str, db: Session):
     
     return connected_users
 
-
 @app.get("/users/{username}/connections")
 def get_user_connections(username: str, db: Session = Depends(get_db)):
     connected_users = get_connections_for_user(username, db)
     return connected_users
 
 @app.post("/users/{username}/connections")
-def create_connection(username: str, connected_username: str, db: Session = Depends(get_db)):
+async def create_connection(username: str, connected_username: str, db: Session = Depends(get_db)):
     user1 = db.query(User).filter(User.name == username).first()
     user2 = db.query(User).filter(User.name == connected_username).first()
     
@@ -94,6 +123,7 @@ def create_connection(username: str, connected_username: str, db: Session = Depe
     new_connection = UserConnection(user1_id=user1_id, user2_id=user2_id)
     db.add(new_connection)
     db.commit()
+    await send_notification("New Connection " + str(new_connection.user1_id) + " and " + str(new_connection.user2_id))
     return {"message": "Connection created", "user1": user1.name, "user2": user2.name}
 
 @app.delete("/users/{username}/connections/{connected_username}")
@@ -135,7 +165,6 @@ async def on_request(message: aio_pika.IncomingMessage, connection: aio_pika.Con
                 ),
                 routing_key=message.reply_to
             )
-
 
 async def start_rabbitmq():
     retries = 5

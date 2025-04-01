@@ -1,7 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, WebSocket
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import sessionmaker, Session, relationship
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
 import os
@@ -10,6 +9,7 @@ import aio_pika
 import asyncio
 from functools import partial
 import json
+from aio_pika import Message, DeliveryMode, connect_robust
 
 
 dotenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '.env')
@@ -30,6 +30,35 @@ def get_db():
         yield db
     finally:
         db.close()
+
+async def get_rabbitmq_connection():
+    return await connect_robust("amqp://guest:guest@rabbitmq/")
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+
+    connection = await get_rabbitmq_connection()
+    channel = await connection.channel() 
+    exchange = await channel.declare_exchange("notifications", aio_pika.ExchangeType.FANOUT)
+    queue = await channel.declare_queue("", exclusive=True)
+    await queue.bind(exchange)
+
+    async for message in queue:
+        async with message.process():
+            await websocket.send_text(message.body.decode())
+    await connection.close()
+
+async def send_notification(message: str):
+    connection = await get_rabbitmq_connection()
+    channel = await connection.channel()
+    exchange = await channel.declare_exchange("notifications", aio_pika.ExchangeType.FANOUT)
+
+    await exchange.publish(
+        Message(message.encode(), delivery_mode=DeliveryMode.PERSISTENT),
+        routing_key=""
+    )
+    await connection.close()
 
 class Meal(Base):
     __tablename__ = "meals"
@@ -60,11 +89,12 @@ def get_meals(username: str, db: Session = Depends(get_db)):
     return {"meals": [{"id": meal.id, "name": meal.name, "planned_for": meal.planned_for} for meal in meals]}
 
 @app.post("/{username}/meals")
-def create_meal(username: str, name:str, date:datetime, db: Session = Depends(get_db)):   
+async def create_meal(username: str, name:str, date:datetime, db: Session = Depends(get_db)):   
     new_meal = Meal(name=name , username=username, planned_for=date)
     db.add(new_meal)
     db.commit()
     db.refresh(new_meal)
+    await send_notification("New Meal" + str(new_meal.id))
     return new_meal
 
 @app.delete("/{username}/meals/{meal_id}")
@@ -108,8 +138,6 @@ def delete_ingredient(username: str, meal_id: int, ingredient_id: int, db: Sessi
     db.commit()
     return {"message": f"Deleted ingredient {ingredient_id}"}
 
-RABBITMQ_HOST = "amqp://guest:guest@rabbitmq/"
-
 async def on_request(message: aio_pika.IncomingMessage, connection: aio_pika.Connection):
     async with message.process():
         request_data = json.loads(message.body)
@@ -126,12 +154,11 @@ async def on_request(message: aio_pika.IncomingMessage, connection: aio_pika.Con
                 routing_key=message.reply_to
             )
 
-
-async def start_rabbitmq():
+async def start_sync_queue():
     retries = 5
     while retries > 0:
         try:
-            connection = await aio_pika.connect_robust(RABBITMQ_HOST)
+            connection = await get_rabbitmq_connection
             channel = await connection.channel()
             queue = await channel.declare_queue("meal_request")
             callback = partial(on_request, connection=connection)
@@ -142,4 +169,4 @@ async def start_rabbitmq():
             await asyncio.sleep(5)
             retries -= 1
 
-asyncio.create_task(start_rabbitmq())
+asyncio.create_task(start_sync_queue())
