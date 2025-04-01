@@ -1,21 +1,52 @@
-<script setup>
+<script>
 
-  import { useRoute } from 'vue-router';
-  import { defineEmits } from 'vue';
-  import { ref, onMounted } from 'vue';
-  import BackButton from '@/components/BackButton.vue';
-  import AddButton from '../components/AddButton.vue';
+  import BackButton from '@/components/BackButton.vue'; 
+  import AddButtonUser from '@/components/AddButtonUser.vue';
 
-  const route = useRoute();
-  const items = ref([]);
+  export default {
 
-  const emit = defineEmits(['removeItem']);
+    data() {
+      return {
+        username: sessionStorage.getItem('user'),
+        users: [],
+        error: null 
+      };
+    },
 
-  onMounted(() => {
-    if (route.query.items) {
-      items.value = JSON.parse(route.query.items);
+    mounted() {
+      fetch("http://localhost/user/users/" + this.username + "/connections")
+        .then(response => response.json())
+        .then(data => {
+          this.users = data; // Speichert die Daten in der Variable
+          console.log(this.users)
+        })
+      .catch(error => {
+        console.error("Error:", error);
+        this.error = error; // Speichert den Fehler, falls nötig
+      });
+    },
+
+    components: {
+      BackButton,
+      AddButtonUser
+    },
+
+    methods: {
+      deleteUser(name) {
+        fetch("http://localhost/user/users/" + this.username + "/connections/" + name, {
+          method: "DELETE"
+        })
+          .then(response => {
+          if (!response.ok) {
+            throw new Error("Fehler beim Löschen");
+          }
+          console.log("User gelöscht");
+        })
+        .catch(error => console.error("Fehler:", error));
+      }
     }
-  });
+
+  };
   
 </script>
 
@@ -23,14 +54,18 @@
   <div class = "user-header">
     <BackButton />
     <h1>Connections</h1>
-    <AddButton />
+    <AddButtonUser />
   </div>
 
   <ul class = "user-list">
-    <li v-for="(item, index) in items" :key="item.id">
-        <div class = "user-item user-name">{{ item.username }} 
+    <li v-for="user in this.users" 
+      :key="user.id">
+
+        <div class = "user-item user-name">{{ user.name }} 
           <button class="delete-button"
-          @click="emit('removeItem', index)"><i class="fa-solid fa-trash"></i></button> </div>
+          @click = "deleteUser(user.name)"><i class="fa-solid fa-trash"></i></button> 
+        </div>
+
       </li>
   </ul>
 

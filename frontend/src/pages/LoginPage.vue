@@ -9,7 +9,7 @@ const error = ref('');
 
 const login = () => {
   if (username.value.trim()) {
-    localStorage.setItem('user', username.value); // Benutzername speichern
+    sessionStorage.setItem('user', username.value); // Benutzername speichern
     router.push('/home'); // Weiterleitung zur Hauptseite
   } else {
     error.value = 'Bitte einen Benutzernamen eingeben';

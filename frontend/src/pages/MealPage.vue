@@ -1,45 +1,113 @@
-<script setup>
+<script>
 
-    import { ref, onMounted } from 'vue';
-    import { useRoute } from 'vue-router'
     import BackButton from '@/components/BackButton.vue';
+                                                                                                                                                                                                                                                                                                                                                          
+    export default {
 
-    const meal = useRoute().query;
+      data() {
+        return {
+          id: 0,
+          name: "",
+          date: "",
+          ingredient: "",
+          amount: null,
+          ingredients: [],
+          isEdit: false,
+          meal: null,
+          owner: "",
+          username: sessionStorage.getItem('user')
+        };
+      },
 
-    const name = ref('');
-    const date = ref('');
-    const ingredient = ref('');
-    const ingredients = ref([]);
-    const isEdit = ref(false);
+      mounted() {
 
-    onMounted(() => {
-        if(meal.username) {
-            isEdit.value = true;
-            name.value = meal.meal || '';
-            date.value = meal.date || '';
-            ingredients.value = meal.ingredients || [];
+        this.meal = this.$route.query;
+
+        if (this.meal && Object.keys(this.meal).length > 0) {
+          this.isEdit = true;
+          this.id = this.meal.id;
+          this.owner = this.meal.owner;
+          this.name = this.meal.name;
+          this.date = new Date(this.meal.planned_for);
+          this.date.setDate(this.date.getDate() + 1);
+          this.date = this.date.toISOString().split('T')[0];
+
+          fetch("http://localhost/meal/" + this.owner + "/meals/"+ this.id + "/ingredients")
+          .then(response => response.json())
+          .then(data => {
+            this.ingredients = data;
+            console.log(this.ingredients)
+          })
+          .catch(error => {
+            console.error("Error:", error);
+            this.error = error;
+          });
+
+          this.ingredients = this.meal.ingredients ? JSON.parse(this.meal.ingredients) : [];
         }
-    });
 
-    const addIngredient = () => {
-        if (ingredient.value.trim()) {
-            ingredients.value.push(ingredient.value.trim());
-            ingredient.value = '';
-        }
-    };
+      },
 
-    const removeIngredient = (index) => {
-        ingredients.value.splice(index, 1);
-    };
+      components: {
+        BackButton
+      },
 
-    const saveMeal = () => {
-        if (isEdit.value) {
-            console.log('Meal updated:', {name: name.value, date: date.value, ingredients: ingredients.value })
+      methods: {
+        createMeal(name, date) {
+          if(this.username == this.owner) {
+          const url = new URL("http://localhost/" + this.username + "/test/meals"); 
+          url.searchParams.append("name", name);
+          url.searchParams.append("date", date);
+
+          fetch(url, {
+            method: "Post"
+          })
+          .then(response => response.json())
+          .then(data => console.log("Erfolgreich erstellt:", data))
+          .catch(error => {
+            console.error("Error:", error);
+          });
         }
-        else {
-            console.log('Meal saved:', {name: name.value, date: date.value, ingredients: ingredients.value })
+        else 
+          alert("You are not the owner of this meal and cannot edit it.");
+        },
+
+        addIngredient(name, amount) {
+          if(this.username == this.owner) {
+          const url = new URL("http://localhost/meal/" + this.username + "/meals/" + this.id + "/ingredients"); 
+          url.searchParams.append("name", name);
+          url.searchParams.append("amount", amount);
+
+          fetch(url, {
+            method: "Post"
+          })
+          .then(response => response.json())
+          .then(data => console.log("Erfolgreich erstellt:", data))
+          .catch(error => {
+            console.error("Error:", error);
+          });
+          } else 
+            alert("You are not the owner of this meal and cannot add ingredients.");
+          },
+
+        removeIngredient(index) {
+          if(this.username == this.owner) {
+          fetch("http://localhost/meal/" + this.username + "/meals/" + this.id + "/ingredients/" + index, {
+          method: "DELETE"
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Fehler beim Löschen");
+            }
+          console.log("Meal gelöscht");
+          })
+          .catch(error => console.error("Fehler:", error));
         }
-    }
+        else 
+          alert("You are not the owner of this meal and cannot remove ingredients.");
+        }
+      }
+  };
 
 </script>
 
@@ -61,20 +129,21 @@
         <input v-model="date" type="date" />
     </div>
 
-    <div class = "form-group">
+    <div v-show="isEdit" class = "form-group">
         <label class="meal-name">Add Ingredient:</label>
         <input v-model="ingredient" class="input" placeholder="New Ingredient" />
-        <button @click="addIngredient" class = "add-button-meal">+</button>
+        <input v-model="amount" class="input" placeholder="Amount" />
+        <button @click="addIngredient(ingredient, amount)" class = "add-button-meal">+</button>
     </div>
     
     <ul class = "meal-list">
-      <li v-for="(item, index) in ingredients" :key="index" class="meal-item">
-        {{ item }}
-        <button @click="removeIngredient(index)" class="delete-button"><i class="fa-solid fa-trash"></i></button>
+      <li v-for="ingredient in this.ingredients" :key="ingredient.id" class="meal-item">
+        {{ ingredient.name }} ({{ ingredient.amount }})
+        <button @click="removeIngredient(ingredient.id)" class="delete-button"><i class="fa-solid fa-trash"></i></button>
       </li>
     </ul>
 
-    <button @click="saveMeal" class="save-button">
+    <button @click="createMeal(name, date)" class="save-button">
       {{ isEdit? 'Save' : 'Create' }}
     </button>
 

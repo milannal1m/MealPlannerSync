@@ -11,16 +11,6 @@ const searchQuery = ref('');
 
 const router = useRouter();
 
-const items = ref([
-  { username: 'Alice', date: '2024-03-19', meal: 'Pancakes', ingredients: ["Flour", "Egg"]},
-  { username: 'Bob', date: '2024-03-18', meal: 'Tacos' },
-  { username: 'Charlie', date: '2024-03-17', meal: 'Steak' },
-]);
-
-const removeItem = (index) => {
-  items.value.splice(index, 1);
-};
-
 const editItem = (meal) => {
   router.push({
     path: '/meal',
@@ -33,11 +23,11 @@ const editItem = (meal) => {
 <template>
   <h1>Meal Planner</h1>
   <div class="button-searchbar">
-    <UserButton :items="items" @removeItem="removeItem" />
+    <UserButton />
     <SearchBar v-model="searchQuery" />
     <AddButton />
   </div>
-    <MealList :items="items" :searchQuery="searchQuery" @removeItem="removeItem" @editItem="editItem"/>
+    <MealList :searchQuery="searchQuery" @editItem="editItem"/>
 </template>
 
 <style>

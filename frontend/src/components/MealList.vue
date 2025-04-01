@@ -1,42 +1,90 @@
-<script setup>
+<script>
 
-import { defineProps } from 'vue';
-import { defineEmits } from 'vue';
+  export default {
+    props: {
+        searchQuery: {
+        type: String,
+        required: true
+      }
+    },
 
-defineProps({
-  items: Array,
-  searchQuery: String
-});
+    data() {
+      return {
+        username: sessionStorage.getItem('user'),
+        meals: [],
+        error: null,
+        filter: ""
+      };
+    },
 
-const emit = defineEmits(['removeItem', 'editItem']);
+    mounted() {
+      fetch("http://localhost/sync/" + this.username + "/synced_meals")
+        .then(response => response.json())
+        .then(data => {
+          this.meals = data; // Speichert die Daten in der Variable
+          console.log(this.meals)
+        })
+      .catch(error => {
+        console.error("Error:", error);
+        this.error = error; // Speichert den Fehler, falls nötig
+      });
+    },
+
+    methods: {
+      deleteMeal(index, owner) {
+        if(owner == this.username) {
+        fetch("http://localhost/meal/" + this.username + "/meals/" + index, {
+          method: "DELETE"
+        })
+          .then(response => {
+          if (!response.ok) {
+            throw new Error("Fehler beim Löschen");
+          }
+          console.log("Meal gelöscht");
+        })
+        .catch(error => console.error("Fehler:", error));
+      }
+      else 
+        alert("You are not the owner of this meal and cannot delete it.");
+      },
+      
+      editItem(meal) {
+        this.$router.push({
+          path: '/meal',
+          query: meal
+        })
+      }
+    }
+      
+  };
+
 
 </script>
 
 <template>
   <ul class="meal-list">
     <li class = "meal-item"
-      v-for="item in items.filter(i => 
-        i.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        i.meal.toLowerCase().includes(searchQuery.toLowerCase())
-      )" 
-      :key="item.date"
-    >
+      v-for="meal in this.meals.filter(meal => 
+      meal.name.toLowerCase().includes(searchQuery.toLocaleLowerCase()) || 
+      meal.owner.toLowerCase().includes(searchQuery.toLocaleLowerCase()) 
+    )" 
+      :key="meal.id">
+
       <div class="meal-info">
-        <span class="meal-name">{{ item.meal }}  {{ item.date }}</span>
-        <span class="meal-user">{{ item.username }}</span>
+        <span class="meal-name">{{ meal.name }}  {{ meal.planned_for.split("T")[0]}}</span>
+        <span class="meal-user">{{ meal.owner }}</span>
       </div>
-      
 
       <div class="action-buttons">
       <button class="edit-button"
-      @click = "emit('editItem', item)"><i class="fa-solid fa-pencil"></i></button>
+      @click = "editItem(meal)"><i class="fa-solid fa-pencil"></i></button>
       <button class="delete-button"
-      @click="emit('removeItem', index)"><i class="fa-solid fa-trash"></i></button> 
-      
+      @click="deleteMeal(meal.id, meal.owner)"><i class="fa-solid fa-trash"></i></button> 
       </div>
 
     </li>
   </ul>
+
 </template>
 
 <style>
