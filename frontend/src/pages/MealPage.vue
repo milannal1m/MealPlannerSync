@@ -1,6 +1,7 @@
 <script>
 
     import BackButton from '@/components/BackButton.vue';
+    import { useRouter } from 'vue-router';
                                                                                                                                                                                                                                                                                                                                                           
     export default {
 
@@ -15,7 +16,8 @@
           isEdit: false,
           meal: null,
           owner: "",
-          username: sessionStorage.getItem('user')
+          username: sessionStorage.getItem('user'),
+          router: useRouter()
         };
       },
 
@@ -54,8 +56,8 @@
 
       methods: {
         createMeal(name, date) {
-          if(this.username == this.owner) {
-          const url = new URL("http://localhost/" + this.username + "/test/meals"); 
+          if(this.isEdit == false) {
+            const url = new URL("http://" + window.location.hostname + "/meal/" + this.username + "/meals");
           url.searchParams.append("name", name);
           url.searchParams.append("date", date);
 
@@ -67,6 +69,12 @@
           .catch(error => {
             console.error("Error:", error);
           });
+
+          this.router.push(
+            {
+              path: '/home'
+            }
+          );
         }
         else 
           alert("You are not the owner of this meal and cannot edit it.");
@@ -74,7 +82,7 @@
 
         addIngredient(name, amount) {
           if(this.username == this.owner) {
-          const url = new URL("http://localhost/meal/" + this.username + "/meals/" + this.id + "/ingredients"); 
+          const url = new URL("http://" + window.location.hostname + "/meal/" + this.username + "/meals/" + this.id + "/ingredients"); 
           url.searchParams.append("name", name);
           url.searchParams.append("amount", amount);
 
@@ -92,7 +100,7 @@
 
         removeIngredient(index) {
           if(this.username == this.owner) {
-          fetch("http://localhost/meal/" + this.username + "/meals/" + this.id + "/ingredients/" + index, {
+          fetch("http://" + window.location.hostname + "/meal/" + this.username + "/meals/" + this.id + "/ingredients/" + index, {
           method: "DELETE"
           })
           .then(response => {

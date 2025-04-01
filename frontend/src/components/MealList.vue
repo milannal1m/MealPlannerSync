@@ -18,7 +18,7 @@
     },
 
     mounted() {
-      fetch("http://localhost/sync/" + this.username + "/synced_meals")
+      fetch("http://" + window.location.hostname + "/sync/" + this.username + "/synced_meals")
         .then(response => response.json())
         .then(data => {
           this.meals = data; // Speichert die Daten in der Variable
@@ -28,12 +28,24 @@
         console.error("Error:", error);
         this.error = error; // Speichert den Fehler, falls nötig
       });
+
+      const meal_socket = new WebSocket("http://" + window.location.hostname + "/meal/ws");
+
+      meal_socket.onopen = function() {
+        console.log("WebSocket ist verbunden.");
+      };
+
+      meal_socket.onmessage = function(event) {
+        console.log("Nachricht vom Server:", event.data);
+
+        location.reload();
+      };
     },
 
     methods: {
       deleteMeal(index, owner) {
         if(owner == this.username) {
-        fetch("http://localhost/meal/" + this.username + "/meals/" + index, {
+        fetch("http://" + window.location.hostname + "/meal/" + this.username + "/meals/" + index, {
           method: "DELETE"
         })
           .then(response => {

@@ -9,12 +9,13 @@
       return {
         username: sessionStorage.getItem('user'),
         users: [],
+        refresh: false,
         error: null 
       };
     },
 
     mounted() {
-      fetch("http://localhost/user/users/" + this.username + "/connections")
+      fetch("http://" + window.location.hostname + "/user/users/" + this.username + "/connections")
         .then(response => response.json())
         .then(data => {
           this.users = data; // Speichert die Daten in der Variable
@@ -24,6 +25,18 @@
         console.error("Error:", error);
         this.error = error; // Speichert den Fehler, falls nötig
       });
+
+      const user_socket = new WebSocket("http://" + window.location.hostname + "/user/ws");
+
+      user_socket.onopen = function() {
+        console.log("WebSocket ist verbunden.");
+      };
+
+      user_socket.onmessage = function(event) {
+        console.log("Nachricht vom Server:", event.data);
+        
+        location.reload();
+      };
     },
 
     components: {

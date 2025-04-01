@@ -1,12 +1,14 @@
 <script>
 
+    import { useRouter } from 'vue-router';
     import BackButtonUser from '@/components/BackButtonUser.vue';
-                                                                                                                                                                                                                                                                                                                                                          
+
     export default {
       data() {
         return {
           username: sessionStorage.getItem('user'),
           name: "",
+          router: useRouter(),
           error: null
         };
       },
@@ -17,7 +19,7 @@
 
       methods: {
         addUser(name) {
-          const url = new URL("http://localhost/user/users/" + this.username + "/connections"); 
+          const url = new URL("http://" + window.location.hostname + "/user/users/" + this.username + "/connections"); 
           url.searchParams.append("connected_username", name);
 
           fetch(url, {
@@ -28,6 +30,12 @@
           .catch(error => {
             console.error("Error:", error);
           });
+
+          this.router.push(
+            {
+              path: '/user'
+            }
+          );
         }
       }
       
