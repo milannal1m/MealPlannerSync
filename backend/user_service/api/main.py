@@ -49,15 +49,16 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
 
     connection = await get_rabbitmq_connection()
-    channel = await connection.channel() 
-    exchange = await channel.declare_exchange("notifications", aio_pika.ExchangeType.FANOUT)
-    queue = await channel.declare_queue("", exclusive=True)
-    await queue.bind(exchange)
+    async with connection:
+        channel = await connection.channel() 
+        exchange = await channel.declare_exchange("notifications", aio_pika.ExchangeType.FANOUT)
+        queue = await channel.declare_queue("", exclusive=True)
+        await queue.bind(exchange)
 
-    async for message in queue:
-        async with message.process():
-            await websocket.send_text(message.body.decode())
-    await connection.close()
+        async for message in queue:
+            async with message.process():
+                await websocket.send_text(message.body.decode())
+        await connection.close()
 
 async def send_notification(message: str):
     connection = await get_rabbitmq_connection()
@@ -147,9 +148,6 @@ def delete_connection(username: str, connected_username: str, db: Session = Depe
     db.commit()
     return {"message": "Connection deleted", "user1": user1.name, "user2": connected_username}
 
-
-RABBITMQ_HOST = "amqp://guest:guest@rabbitmq/"
-
 async def on_request(message: aio_pika.IncomingMessage, connection: aio_pika.Connection):
     async with message.process():
         request_data = json.loads(message.body)
@@ -170,13 +168,14 @@ async def start_rabbitmq():
     retries = 5
     while retries > 0:
         try:
-            connection = await aio_pika.connect_robust(RABBITMQ_HOST)
-            channel = await connection.channel()
-            queue = await channel.declare_queue("user_request")
-            callback = partial(on_request, connection=connection)
-            await queue.consume(callback)
-            await asyncio.Future()
-            break
+            connection = await get_rabbitmq_connection()
+            async with connection:
+                channel = await connection.channel()
+                queue = await channel.declare_queue("user_request")
+                callback = partial(on_request, connection=connection)
+                await queue.consume(callback)
+                await asyncio.Future()
+                break
         except aio_pika.exceptions.AMQPConnectionError as e:
             await asyncio.sleep(5)
             retries -= 1

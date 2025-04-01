@@ -38,8 +38,16 @@ fetch("http://localhost/meal/test/meals/6", {
 
 <-- Web Sockets -->
 
-const socket = new WebSocket("http://localhost/meal/ws");
+const meal_socket = new WebSocket("http://localhost/meal/ws");
 
-socket.onmessage = function(event) {
+meal_socket.onmessage = function(event) {
     console.log("Nachricht vom Server:", event.data);
+    // Hier refreshen wir die Liste der Meals
+};
+
+const user_socket = new WebSocket("http://localhost/user/ws");
+
+user_socket.onmessage = function(event) {
+    console.log("Nachricht vom Server:", event.data);
+    // Hier refreshen wir die Liste der Meals
 };

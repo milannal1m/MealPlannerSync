@@ -158,7 +158,7 @@ async def start_sync_queue():
     retries = 5
     while retries > 0:
         try:
-            connection = await get_rabbitmq_connection
+            connection = await get_rabbitmq_connection()
             channel = await connection.channel()
             queue = await channel.declare_queue("meal_request")
             callback = partial(on_request, connection=connection)
