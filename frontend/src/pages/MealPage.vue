@@ -83,6 +83,18 @@
             location.reload();
           };
 
+          const user_socket = new WebSocket("http://" + window.location.hostname + "/user/ws");
+
+          user_socket.onopen = function() {
+            console.log("WebSocket ist verbunden.");
+          };
+
+          user_socket.onmessage = function(event) {
+            console.log("Nachricht vom Server:", event.data);
+            
+            location.reload();
+          };
+
           this.router.push(
             {
               path: '/home'
