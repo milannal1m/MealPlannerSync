@@ -8,7 +8,7 @@
 
     data() {
       return {
-        username: sessionStorage.getItem('user'),
+        username: localStorage.getItem('user'),
         users: [],
         refresh: false,
         error: null 

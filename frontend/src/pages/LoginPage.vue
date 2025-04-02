@@ -1,20 +1,42 @@
-<script setup>
+<script>
 
-import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-const router = useRouter();
-const username = ref('');
-const error = ref('');
+export default {
+  data() {
+    return {
+      router: useRouter(),
+      username: "",
+      error: null,
+      response: null
+    };
+  },
 
-const login = () => {
-  if (username.value.trim()) {
-    sessionStorage.setItem('user', username.value); // Benutzername speichern
-    router.push('/home'); // Weiterleitung zur Hauptseite
-  } else {
-    error.value = 'Bitte einen Benutzernamen eingeben';
+  methods: {
+    login() {
+      if (this.username.trim()) {
+        localStorage.setItem('user', this.username); // Benutzername speichern
+              const url = new URL("http://" + window.location.hostname + "/user/users");
+              url.searchParams.append("username", this.username);
+
+              fetch(url, {
+                method: "POST",
+              })
+                .then(response => response.json())
+                .then(data => console.log("Erfolgreich erstellt:", data))
+                .catch(error => {
+                  console.error("Error:", error);
+                });
+
+              // Weiterleitung zur Hauptseite
+              this.router.push('/home');
+      } else {
+        this.error = 'Bitte einen Benutzernamen eingeben';
+      }
+    },
   }
-};
+  };
+
 
 </script>
 

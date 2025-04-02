@@ -10,7 +10,7 @@
 
     data() {
       return {
-        username: sessionStorage.getItem('user'),
+        username: localStorage.getItem('user'),
         meals: [],
         error: null,
         filter: ""
@@ -89,7 +89,7 @@
 
       <div class="action-buttons">
       <button class="edit-button"
-      @click = "editItem(meal)"><i class="fa-solid fa-pencil"></i></button>
+      @click = "editItem(meal)"><i class="fa-solid fa-arrow-right"></i></button>
       <button class="delete-button"
       @click="deleteMeal(meal.id, meal.owner)"><i class="fa-solid fa-trash"></i></button> 
       </div>

@@ -18,10 +18,19 @@ const editItem = (meal) => {
   })
 };
 
+const logOut = () => {
+  localStorage.removeItem('user');
+  router.push({ path: '/' });
+};
+
 </script>
 
 <template>
-  <h1>Meal Planner</h1>
+  <div class="user-header">
+    <h1>Meal Planner</h1>
+    <button class="logOut-button" @click="logOut"><i class="fa-solid fa-right-from-bracket"></i></button>
+  </div>
+
   <div class="button-searchbar">
     <UserButton />
     <SearchBar v-model="searchQuery" />
@@ -34,11 +43,30 @@ const editItem = (meal) => {
 
   .button-searchbar {
     display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px; /* Abstand zwischen den Elementen */
-  width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px; /* Abstand zwischen den Elementen */
+    width: 100%;
   }
+
+  .logOut-button {
+    width: 80px;  /* Feste Breite */
+    height: 40px; /* Feste Höhe */
+    font-size: 22px; /* Größere Schrift */
+    display: flex; /* Zentriert den Inhalt */
+    align-items: center;
+    justify-content: center;
+    border: none; /* Entfernt den Standard-Rand */
+    border-radius: 8px; /* Runde Ecken */
+    cursor: pointer;
+    gap: 25px;
+    margin-bottom: 10px; /* Vertikaler Abstand zwischen den Buttons */
+    margin-left: 42.5%;
+  }
+
+  .logOut-button {
+    background: #dc3545;
+    }
   
   body {
     background-color: #f3f4f6;

@@ -6,7 +6,7 @@
     export default {
       data() {
         return {
-          username: sessionStorage.getItem('user'),
+          username: localStorage.getItem('user'),
           name: "",
           router: useRouter(),
           error: null
@@ -29,6 +29,7 @@
           .then(data => console.log("Erfolgreich erstellt:", data))
           .catch(error => {
             console.error("Error:", error);
+            alert("User does not exist or is already connected.");
           });
 
           this.router.push(

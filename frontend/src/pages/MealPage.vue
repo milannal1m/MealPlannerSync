@@ -16,7 +16,7 @@
           isEdit: false,
           meal: null,
           owner: "",
-          username: sessionStorage.getItem('user'),
+          username: localStorage.getItem('user'),
           router: useRouter()
         };
       },
@@ -46,6 +46,7 @@
           });
 
           this.ingredients = this.meal.ingredients ? JSON.parse(this.meal.ingredients) : [];
+
         }
 
       },
@@ -69,6 +70,18 @@
           .catch(error => {
             console.error("Error:", error);
           });
+
+          const meal_socket = new WebSocket("http://" + window.location.hostname + "/meal/ws");
+
+          meal_socket.onopen = function() {
+            console.log("WebSocket ist verbunden.");
+          };
+
+          meal_socket.onmessage = function(event) {
+            console.log("Nachricht vom Server:", event.data);
+
+            location.reload();
+          };
 
           this.router.push(
             {
@@ -94,26 +107,23 @@
           .catch(error => {
             console.error("Error:", error);
           });
+          
+          const ingredient_socket = new WebSocket("http://" + window.location.hostname + "/meal/ws");
+
+          ingredient_socket.onopen = function() {
+            console.log("WebSocket ist verbunden.");
+          };
+
+          ingredient_socket.onmessage = function(event) {
+            console.log("Nachricht vom Server:", event.data);
+
+            location.reload();
+          };
+          
           } else 
             alert("You are not the owner of this meal and cannot add ingredients.");
           },
 
-        removeIngredient(index) {
-          if(this.username == this.owner) {
-          fetch("http://" + window.location.hostname + "/meal/" + this.username + "/meals/" + this.id + "/ingredients/" + index, {
-          method: "DELETE"
-          })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error("Fehler beim Löschen");
-            }
-          console.log("Meal gelöscht");
-          })
-          .catch(error => console.error("Fehler:", error));
-        }
-        else 
-          alert("You are not the owner of this meal and cannot remove ingredients.");
-        }
       }
   };
 
@@ -124,17 +134,19 @@
   <div class="p-4 max-w-md mx-auto bg-white rounded shadow">
     <div class = "meal-header">
       <BackButton />
-      <h1 class="text-xl font-bold mb-4">{{ isEdit ? 'Edit Meal' : 'Create a Meal' }}</h1>
+      <h1 class="text-xl font-bold mb-4">{{ isEdit ? 'Add Ingredients' : 'Create a Meal' }}</h1>
     </div>
     
     <div class = "form-group">
         <label class="meal-name">Name:</label>
-        <input v-model="name" placeholder="Meal name" />
+        <span v-if="isEdit">{{ name }}</span>
+        <input v-if="!isEdit" v-model="name" placeholder="Meal name" />
     </div>
 
     <div class = "form-group">
         <label class="meal-name">Date:</label>
-        <input v-model="date" type="date" />
+        <span v-if="isEdit">{{ date }}</span>
+        <input v-if="!isEdit" v-model="date" type="date" />
     </div>
 
     <div v-show="isEdit" class = "form-group">
@@ -147,12 +159,11 @@
     <ul class = "meal-list">
       <li v-for="ingredient in this.ingredients" :key="ingredient.id" class="meal-item">
         {{ ingredient.name }} ({{ ingredient.amount }})
-        <button @click="removeIngredient(ingredient.id)" class="delete-button"><i class="fa-solid fa-trash"></i></button>
       </li>
     </ul>
 
-    <button @click="createMeal(name, date)" class="save-button">
-      {{ isEdit? 'Save' : 'Create' }}
+    <button v-if="!isEdit" @click="createMeal(name, date)" class="save-button">
+      Create
     </button>
 
   </div>
