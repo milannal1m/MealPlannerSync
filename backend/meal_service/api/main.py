@@ -46,9 +46,10 @@ def get_ingredients(username: str, meal_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/{username}/meals/{meal_id}/ingredients")
-def create_ingredient_endpoint(username: str, meal_id: int, name: str, amount: str, db: Session = Depends(get_db)):
+async def create_ingredient_endpoint(username: str, meal_id: int, name: str, amount: str, db: Session = Depends(get_db)):
     meal = get_meal_by_id(username, meal_id, db)
     if not meal:
         raise HTTPException(status_code=404, detail="Meal not found")
     new_ingredient = create_ingredient(meal_id, name, amount, db)
+    await send_notification(f"Added Ingredient {new_ingredient.id}")
     return {"id": new_ingredient.id, "name": new_ingredient.name, "amount": new_ingredient.amount}
