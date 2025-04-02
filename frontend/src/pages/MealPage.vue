@@ -34,7 +34,7 @@
           this.date.setDate(this.date.getDate() + 1);
           this.date = this.date.toISOString().split('T')[0];
 
-          fetch("http://localhost/meal/" + this.owner + "/meals/"+ this.id + "/ingredients")
+          fetch("http://" + window.location.hostname + "/meal/" + this.owner + "/meals/"+ this.id + "/ingredients")
           .then(response => response.json())
           .then(data => {
             this.ingredients = data;

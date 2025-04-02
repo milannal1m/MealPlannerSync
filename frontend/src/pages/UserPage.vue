@@ -47,7 +47,7 @@
 
     methods: {
       deleteUser(name) {
-        fetch("http://localhost/user/users/" + this.username + "/connections/" + name, {
+        fetch("http://" + window.location.hostname + "/user/users/" + this.username + "/connections/" + name, {
           method: "DELETE"
         })
           .then(response => {
