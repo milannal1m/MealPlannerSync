@@ -2,6 +2,7 @@
 
   import BackButton from '@/components/BackButton.vue'; 
   import AddButtonUser from '@/components/AddButtonUser.vue';
+  
 
   export default {
 
