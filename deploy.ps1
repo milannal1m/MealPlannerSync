@@ -49,6 +49,9 @@ if (Test-Path $envPath) {
     Write-Host "WARNUNG: Keine .env-Datei gefunden!"
 }
 
+$env:POSTGRES_USER | docker secret create db_user -
+$env:POSTGRES_PASSWORD | docker secret create db_password -
+
 Write-Host "Deploye Stack mit Docker Swarm..."
 $composePath = Join-Path -Path $scriptRoot -ChildPath "docker-compose.yml"
 docker stack deploy -c $composePath mealplanner

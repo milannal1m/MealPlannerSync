@@ -32,6 +32,9 @@ else
     echo "WARNUNG: Keine .env-Datei gefunden!"
 fi
 
+echo "$POSTGRES_USER" | docker secret create db_user -
+echo "$POSTGRES_PASSWORD" | docker secret create db_password -
+
 echo "Deploye Stack mit Docker Swarm..."
 sudo docker stack deploy -c docker-compose.yml mealplanner
 
